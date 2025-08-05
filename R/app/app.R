@@ -1,8 +1,8 @@
-DT3<-readr::read_csv(
-  "C:/Users/tizge/Downloads/literature.csv"
-) %>%
-  unique()
-saveRDS(DT3, "note.rds")
+# DT3<-readr::read_csv(
+#   "C:/Users/tizge/Downloads/literature.csv"
+# ) %>%
+#   unique()
+# saveRDS(DT3, "note.rds")
 # options(shiny.trace = F)  
 library(shiny)
 library(shinyjs)
