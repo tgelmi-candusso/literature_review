@@ -68,3 +68,22 @@ class(gs_df6)
 gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4, gs_df5, gs_df6) # total of 99 pages (990 published works)
 # See results
 head(gs_df)
+
+#check if ran into a Captcha page:
+
+gs_url_base <- "https://scholar.google.com/scholar"
+term <- 'intext:"psychotherapy" AND "PTSD"'
+page_no <- 90
+gs_url <- paste0(gs_url_base, "?start=", page_no - 1, "&q=", noquote(gsub("\\s+", "+", trimws(term))))
+session <- rvest::session(gs_url)
+wbpage <- rvest::read_html(session)
+page_text <- rvest::html_text(wbpage)
+page_text # check what the page displays
+captcha <- rvest::html_text(rvest::html_elements(wbpage, "#gs_captcha_ccl"))
+captcha # check if there is a captcha
+
+#extract interesting words out of captions
+gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4, gs_df5, gs_df6)
+gs_df_clean <- gs_df %>% filter(!duplicated(title))
+write.csv(gs_df_clean, "UWI_mammal_review_literature_query_first_run.csv", row.names=FALSE)
+

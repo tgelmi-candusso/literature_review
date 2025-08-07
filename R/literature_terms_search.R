@@ -1,31 +1,21 @@
-#check if ran into a Captcha page:
+scopus_initial_pull_SBM <- read_csv("data/scopus_initial_pull_SBM.csv") %>% dplyr::filter(include == "Y") %>% dplyr::select(-"...25" )
+scopus_initial_pull_TGC <- read_csv("data/scopus_initial_pull_TGC.csv") %>% dplyr::filter(include == "Yes")
+scopus_initial_pull_MHM <- read_csv("data/scopus_initial_pull_MHM.csv") %>% dplyr::filter(include == "1")
+colnames(scopus_initial_pull_SBM)
+scopus_initial_pull <- rbind(scopus_initial_pull_SBM, scopus_initial_pull_TGC) %>% rbind(., scopus_initial_pull_MHM)
+scopus_initial_pull <- as.data.frame(scopus_initial_pull)
 
-gs_url_base <- "https://scholar.google.com/scholar"
-term <- 'intext:"psychotherapy" AND "PTSD"'
-page_no <- 90
-gs_url <- paste0(gs_url_base, "?start=", page_no - 1, "&q=", noquote(gsub("\\s+", "+", trimws(term))))
-session <- rvest::session(gs_url)
-wbpage <- rvest::read_html(session)
-page_text <- rvest::html_text(wbpage)
-page_text # check what the page displays
-captcha <- rvest::html_text(rvest::html_elements(wbpage, "#gs_captcha_ccl"))
-captcha # check if there is a captcha
-
-#extract interesting words out of captions
-gs_df <- rbind(gs_df1, gs_df2, gs_df3, gs_df4, gs_df5, gs_df6)
-gs_df_clean <- gs_df %>% filter(!duplicated(title))
-write.csv(gs_df_clean, "UWI_mammal_review_literature_query_first_run.csv", row.names=FALSE)
 # Extract terms from from title
-gs_terms <- litsearchr::extract_terms(text = gs_df_clean[,"title"],
+gs_terms <- litsearchr::extract_terms(text = scopus_initial_pull[,"Title"],
                                       method = "fakerake", min_freq = 3, min_n = 2,
                                       stopwords = stopwords::data_stopwords_stopwordsiso$en)
 
-#create co-occurrence network
 
 # Create Co-Occurrence Network
-gs_docs <- paste(gs_df_clean[, "title"], gs_df_clean[, "abstract"]) # we will consider title and abstract of each article to represent the article's "content"
+gs_docs <- paste(scopus_initial_pull[, "Title"],scopus_initial_pull[, "Index.Keywords"], scopus_initial_pull[, "Author.Keywords"]) # we will consider title and abstract of each article to represent the article's "content"
 gs_dfm <- litsearchr::create_dfm(elements = gs_docs, features = gs_terms) # document-feature matrix
 gs_coocnet <- litsearchr::create_network(gs_dfm, min_studies = 3)
+library(ggraph)
 ggraph(gs_coocnet, layout = "stress") +
   coord_fixed() +
   expand_limits(x = c(-3, 3)) +
@@ -104,3 +94,4 @@ litsearchr::write_search(
 # "((\"wildlife conservation\" OR \"wildlife management\") AND (\"urban environment\" OR \"urban landscape\" OR urbanization) AND (\"urban wildlife\" OR \"wildlife interactions\" OR mammal))"
 #Only the last two steps, pertaining to term exclusion and term grouping, need the careful decisions of a human researcher. The automatic workflow, on it’s own, found some important terms that I would have surely omitted.
 #Grames, E. M., Stillman, A. N., Tingley, M. W., & Elphick, C. S. (2019). An automated approach to identifying search terms for systematic reviews using keyword co‐occurrence networks. Methods in Ecology and Evolution, 10(10), 1645-1654.
+  
